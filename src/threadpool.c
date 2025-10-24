@@ -4,15 +4,11 @@
 #include <time.h>
 #include <unistd.h>
 
-#define TOTAL_TASKS 100
-
-typedef struct Task {
-  int a, b;
-} Task;
+#include "thread_pool.h"
 
 Task* Task_Queue;
 
-int NUM_THREAD = 8;
+int NUM_THREAD = DEFAULT_NUM_THREADS;
 int Task_Count = 0;
 int shutdown = 0;
 
@@ -31,7 +27,7 @@ void Submit_Task(Task task) {
   pthread_mutex_unlock(&lockQ);
 }
 
-void* start_thread(void* arg) {
+void* start_thread() {
   while (1) {
     pthread_mutex_lock(&lockQ);
     while (Task_Count == 0 && shutdown == 0) {
@@ -71,7 +67,7 @@ int main() {
     }
   }
 
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < TOTAL_TASKS; ++i) {
     Task t = {.a = rand() % 100, .b = rand() % 100};
     Submit_Task(t);
   }
@@ -90,3 +86,5 @@ int main() {
   pthread_cond_destroy(&condQ);
   return 0;
 }
+
+

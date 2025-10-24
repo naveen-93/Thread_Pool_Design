@@ -1,60 +1,68 @@
 # Thread Pool Implementation in C
 
-A simple thread pool implementation in C using POSIX threads (pthreads) that demonstrates producer-consumer pattern with proper synchronization.
+A simple thread pool implementation in C using POSIX threads (pthreads) that demonstrates the producer-consumer pattern with proper synchronization.
+
+## Project Structure
+
+```
+.
+├── include/
+│   └── thread_pool.h        # Public header: constants, Task type, API
+├── src/
+│   └── threadpool.c         # Implementation and demo main()
+└── README.md
+```
 
 ## Features
 
-- **Fixed-size thread pool** with 8 worker threads
+- **Fixed-size thread pool** with `DEFAULT_NUM_THREADS` worker threads (default: 8)
 - **Thread-safe task queue** using mutex locks
 - **Efficient waiting** using condition variables (no busy-waiting)
-- **Graceful shutdown** mechanism to cleanly terminate all threads
+- **Graceful shutdown** to cleanly terminate all threads
 - **Producer-consumer pattern** for task distribution
 
-## Concepts Demonstrated
+## Build
 
-- **Mutex locks** (`pthread_mutex_t`) for protecting shared resources
-- **Condition variables** (`pthread_cond_t`) for thread synchronization
-- **Thread creation and joining** (`pthread_create`, `pthread_join`)
-- **Critical sections** and race condition prevention
-- **Graceful thread termination** with shutdown signaling
-
-## How It Works
-
-1. **Initialization**: Creates 8 worker threads that wait for tasks
-2. **Task Submission**: Main thread submits 100 tasks to the shared queue
-3. **Task Processing**: Worker threads dequeue and execute tasks concurrently
-4. **Shutdown**: After all tasks are submitted, signals shutdown and waits for threads to finish remaining work
-5. **Cleanup**: Destroys synchronization primitives and exits cleanly
-
-## Compilation
+### Using gcc directly
 ```bash
-gcc -pthread threadpool.c -o threadpool
+gcc -pthread -Iinclude src/threadpool.c -o threadpool
 ```
 
-## Running
+### Using the included Makefile
+```bash
+make        # build
+make run    # build and run
+make clean  # remove binary
+```
+
+## Run
 ```bash
 ./threadpool
 ```
 
 ## Output
 
-The program outputs the sum of randomly generated numbers processed by different threads:
+The program outputs the sum of randomly generated numbers processed by different threads, for example:
 ```
 The sum of 42 and 67 is 109
 The sum of 23 and 89 is 112
 ...
 ```
 
-## Code Structure
+## Key Types and API
 
-- `Task`: Structure holding task data (two integers to add)
-- `Submit_Task()`: Thread-safe task submission to queue
-- `start_thread()`: Worker thread function that processes tasks
-- `executeTask()`: Executes the actual task (addition operation)
+- `Task` (from `include/thread_pool.h`): holds two integers to add
+- `executeTask(Task*)`: executes the task
+- `Submit_Task(Task)`: thread-safe task submission to the queue
+- `start_thread(void*)`: worker thread entry function
+
+Constants defined in `include/thread_pool.h`:
+- `DEFAULT_NUM_THREADS` (default: 8)
+- `TOTAL_TASKS` (default: 100)
 
 ## Synchronization Flow
 ```
-Producer (Main Thread)          Workers (8 Threads)
+Producer (Main Thread)          Workers (N Threads)
         |                              |
         |--[Submit tasks]-->  [Wait on condition]
         |                              |
@@ -67,20 +75,3 @@ Producer (Main Thread)          Workers (8 Threads)
    [Join threads]              [Thread exits]
 ```
 
-## Key Synchronization Points
-
-1. **Queue access protected by mutex** - Prevents race conditions when adding/removing tasks
-2. **Condition variable for waiting** - Threads sleep efficiently until work is available
-3. **Shutdown flag + broadcast** - Cleanly signals all threads to finish and exit
-
-## Learning Outcomes
-
-This project demonstrates:
-- How to avoid race conditions in multithreaded programs
-- Proper use of mutex locks and condition variables
-- The producer-consumer design pattern
-- How to implement graceful shutdown in threaded applications
-
-## License
-
-MIT License - Feel free to use and modify!
